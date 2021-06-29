@@ -1,6 +1,8 @@
 const express = require('express');
 const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 6, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota is exhausted.</p>Please try again after a minute</h1>"})
-const factsData = require('./crs-pltf/facts.json')
+const fs = require('fs');
+const factsDataStoreName = "./crs-pltf/facts.json";
+const factsDataStore = require(factsDataStoreName);
 const app = express();
 const PORT = process.env.PORT ?? 5000;
 
@@ -12,8 +14,8 @@ app.use((req, res, next) => {
 
 //handling functions
 function randomFact() {
-    i = Math.floor(Math.random() * factsData.total);
-    fact = factsData.facts[i];
+    i = Math.floor(Math.random() * factsDataStore.total);
+    fact = factsDataStore.facts[i];
     return fact;
 }
 
@@ -23,7 +25,7 @@ function getFactById(id) {
         type: "Error",
         content: "Invalid id"
     };
-    factsData.facts.forEach((fact) => {
+    factsDataStore.facts.forEach((fact) => {
         if (fact.id == id) factGot = fact;
     })
     return factGot;
@@ -32,7 +34,7 @@ function getFactById(id) {
 function getFactByType(type) {
     let factOfType = [];
     let result = [];
-    factsData.facts.forEach((fact) => {
+    factsDataStore.facts.forEach((fact) => {
         if (fact.type == type) {
             factOfType.push(fact)
         }
@@ -50,7 +52,7 @@ function getFactsByType(type, amt) {
     amt = amt ?? 1;
     let factOfType = [];
     let result = [];
-    factsData.facts.forEach((fact) => {
+    factsDataStore.facts.forEach((fact) => {
         if (fact.type == type) {
             factOfType.push(fact)
         }
@@ -68,9 +70,16 @@ function getFactsByType(type, amt) {
     return {"found": result.length, "facts":result}
 }
 
+function newFact(type, content) {
+    if ((type == null || type == undefined) || (content == null || content == undefined)) return
+    let fact = { id: ++factsDataStore.total, type, content }
+    factsDataStore.facts.push(fact);
+    fs.writeFileSync(factsDataStoreName, JSON.stringify(factsDataStore, null, 4));
+}
+
 //routes
 app.use('/all', limiter, (req, res, next) => {
-    res.json(factsData);
+    res.json(factsDataStore);
 })
 
 app.use('/random', limiter, (req, res, next) => {
@@ -92,7 +101,9 @@ app.use('/type/:type', limiter, (req, res, next) => {
 app.use('/', (req, res, next) => {
     let html = "<html>";
         html += "<head>";
+            html += "<meta charset='UTF - 8'>";
             html += "<title>Fact API</title>";
+            html += "<meta name='google-site-verification' content='J5jKOO8-i9FL4Z-VE7GiXsAwBr0ZCGLvcz0LM-nlcso'/>";
         html += "</head>";
     
         html += "<body>";
