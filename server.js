@@ -1,4 +1,6 @@
 const express = require('express');
+const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 600, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota is exhausted.</p>Please try again after a minute</h1>"})
+//                                                                      ^Change to 6
 const cors = require('cors');
 const factsData = require('./crs-pltf/facts.json')
 const app = express();
@@ -17,7 +19,7 @@ function randomFact() {
 function getFactById(id) {
     let factGot = {
         id: NaN,
-        type: "unknown",
+        type: "Error",
         content: "Invalid id"
     };
     factsData.facts.forEach((fact) => {
@@ -26,19 +28,84 @@ function getFactById(id) {
     return factGot;
 }
 
+function getFactByType(type) {
+    let factOfType = [];
+    let result = [];
+    factsData.facts.forEach((fact) => {
+        if (fact.type == type) {
+            factOfType.push(fact)
+        }
+    });
+
+    if (factOfType.length == 0) 
+        factOfType.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
+    
+    result = factOfType[Math.floor(Math.random() * factOfType.length)]
+    
+    return result;
+}
+
+function getFactsByType(type, amt) {
+    amt = amt ?? 1;
+    let factOfType = [];
+    let result = [];
+    factsData.facts.forEach((fact) => {
+        if (fact.type == type) {
+            factOfType.push(fact)
+        }
+    });
+    
+    for (i = amt; i > 0; i--){
+        if (factOfType.length == 0) {
+            factOfType.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
+            break;
+        }
+    }
+
+    result = factOfType; //temporary
+    
+    return {"found": result.length, "facts":result}
+}
+
 //routes
-app.use('/id/:id', (req, res, next) => {
-    res.json(getFactById(req.params.id));
-    next();
+app.use('/random', limiter, (req, res, next) => {
+    res.json(randomFact());
 })
 
-app.use('/random', (req, res, next) => {
-    res.json(randomFact());
-    next();
+app.use('/id/:id', limiter, (req, res, next) => {
+    res.json(getFactById(req.params.id));
+})
+
+app.use('/type/:type/:amt', limiter, (req, res, next) => {
+    res.json(getFactsByType(req.params.type, req.params.amt));
+})
+
+app.use('/type/:type', limiter, (req, res, next) => {
+    res.json(getFactByType(req.params.type))
 })
 
 app.use('/', (req, res, next) => {
-    res.sendFile('./index.html', { root: __dirname });
+    let html = "<html>";
+        html += "<head>";
+            html += "<title>Fact API</title>";
+        html += "</head>";
+    
+        html += "<body>";
+            html += "<h2>You may use following endpoints</h2>";
+            html += "<ul>";
+                html += "<li><a target='_blank' href='./random' title='random facts'>Random Facts</a><br>Syntax: .../random</li>";
+                html += "<hr>";
+                html += "<li><a target='_blank' href='./type/general' title='fact by type'>Fact by type</a><br>Syntax: .../type/&lt;fact-type&gt;</li>";
+                html += "<hr>";
+                html += "<li><a target='_blank' href='./type/general/2' title='facts by type'>Facts by type</a><br>Syntax: .../type/&lt;fact-type&gt;/&lt;number-of-facts&gt;</li>";
+                html += "<hr>";
+                html += "<li><a target='_blank' href='./id/1' title='facts by type'>Facts by id</a><br>Syntax: .../id/&lt;fact-id&gt;</li>";
+            html += "</ul>";
+        html += "</body>";
+    html += "</html>";
+
+    res.send(html);
+    next();
 });
 
 //start server
