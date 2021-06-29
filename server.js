@@ -69,6 +69,10 @@ function getFactsByType(type, amt) {
 }
 
 //routes
+app.use('/all', limiter, (req, res, next) => {
+    res.json(factsData);
+})
+
 app.use('/random', limiter, (req, res, next) => {
     res.json(randomFact());
 })
@@ -94,6 +98,8 @@ app.use('/', (req, res, next) => {
         html += "<body>";
             html += "<h2>You may use following endpoints</h2>";
             html += "<ul>";
+                html += "<li><a target='_blank' href='./all' title='all facts'>All Facts</a><br>Syntax: .../all</li>";
+                html += "<hr>";
                 html += "<li><a target='_blank' href='./random' title='random facts'>Random Facts</a><br>Syntax: .../random</li>";
                 html += "<hr>";
                 html += "<li><a target='_blank' href='./type/general' title='fact by type'>Fact by type</a><br>Syntax: .../type/&lt;fact-type&gt;</li>";
