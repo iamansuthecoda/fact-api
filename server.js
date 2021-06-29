@@ -55,15 +55,15 @@ function getFactsByType(type, amt) {
         }
     });
     
-    for (i = amt; i > 0; i--){
+    for (i = 0; i < amt; i++){
         if (factOfType.length == 0) {
-            factOfType.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
+            result.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
             break;
         }
+        rn = Math.floor(Math.random() * factOfType.length);
+        result.push(factOfType[rn]);
+        factOfType.splice(rn, 1);
     }
-
-    result = factOfType; //temporary
-    
     return {"found": result.length, "facts":result}
 }
 
