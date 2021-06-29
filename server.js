@@ -1,6 +1,5 @@
 const express = require('express');
-const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 600, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota is exhausted.</p>Please try again after a minute</h1>"})
-//                                                                      ^Change to 6
+const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 6, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota is exhausted.</p>Please try again after a minute</h1>"})
 const factsData = require('./crs-pltf/facts.json')
 const app = express();
 const PORT = process.env.PORT ?? 5000;
