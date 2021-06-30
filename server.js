@@ -1,5 +1,6 @@
 const express = require('express');
-const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 6, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota is exhausted.</p>Please try again after a minute</h1>"})
+const path = require('path');
+const limiter = require('express-rate-limit')({windowMs: 60 * 1000, max: 6, message: "<h1 style='position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align:center; color:#c00000; font-family:monospace;'><p style='color:red;'>You have exceeded 6 Request per minute quota.</p>Please try again after a minute</h1>"})
 const fs = require('fs');
 const factsDataStoreName = "./crs-pltf/facts.json";
 const factsDataStore = require(factsDataStoreName);
@@ -39,9 +40,9 @@ function getFactByType(type) {
             factOfType.push(fact)
         }
     });
-
+    
     if (factOfType.length == 0) 
-        factOfType.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
+    factOfType.push({ "id": NaN, "type": "Error", "content": "No facts of type `" + type + "` found" });
     
     result = factOfType[Math.floor(Math.random() * factOfType.length)]
     
@@ -70,11 +71,15 @@ function getFactsByType(type, amt) {
     return {"found": result.length, "facts":result}
 }
 
-function newFact(type, content) {
-    if ((type == null || type == undefined) || (content == null || content == undefined)) return
+function setNewFact(type = null, content = null, res) {
+    if ((type == null || type == undefined) || (content == null || content == undefined)) {
+        res.send("Failed")
+        return false
+    }
     let fact = { id: ++factsDataStore.total, type, content }
     factsDataStore.facts.push(fact);
     fs.writeFileSync(factsDataStoreName, JSON.stringify(factsDataStore, null, 4));
+    res.send("Success");
 }
 
 //routes
@@ -98,32 +103,18 @@ app.use('/type/:type', limiter, (req, res, next) => {
     res.json(getFactByType(req.params.type))
 })
 
-app.use('/', (req, res, next) => {
-    let html = "<html>";
-        html += "<head>";
-            html += "<meta charset='UTF - 8'>";
-            html += "<title>Fact API</title>";
-            html += "<meta name='google-site-verification' content='J5jKOO8-i9FL4Z-VE7GiXsAwBr0ZCGLvcz0LM-nlcso'/>";
-        html += "</head>";
-    
-        html += "<body>";
-            html += "<h2>You may use following endpoints</h2>";
-            html += "<ul>";
-                html += "<li><a target='_blank' href='./all' title='all facts'>All Facts</a><br>Syntax: .../all</li>";
-                html += "<hr>";
-                html += "<li><a target='_blank' href='./random' title='random facts'>Random Facts</a><br>Syntax: .../random</li>";
-                html += "<hr>";
-                html += "<li><a target='_blank' href='./type/general' title='fact by type'>Fact by type</a><br>Syntax: .../type/&lt;fact-type&gt;</li>";
-                html += "<hr>";
-                html += "<li><a target='_blank' href='./type/general/2' title='facts by type'>Facts by type</a><br>Syntax: .../type/&lt;fact-type&gt;/&lt;number-of-facts&gt;</li>";
-                html += "<hr>";
-                html += "<li><a target='_blank' href='./id/1' title='facts by type'>Facts by id</a><br>Syntax: .../id/&lt;fact-id&gt;</li>";
-            html += "</ul>";
-        html += "</body>";
-    html += "</html>";
+app.use('/subPortal', function(req, res){
+    res.sendFile(path.join(__dirname,'./public/newfact.html'));
+});
 
-    res.send(html);
-    next();
+app.post('/addFact', express.urlencoded(), (req, res, next) => {
+    console.log(req.body.fct_typ);
+    console.log(req.body.fct_con);
+    setNewFact(req.body.fct_typ.toLowerCase(), req.body.fct_con, res)
+})
+
+app.use('/', (req, res, next) => {
+    res.sendFile(path.join(__dirname, './public/home.html'));
 });
 
 //start server

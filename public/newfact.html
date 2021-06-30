@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fact-API Submission Portal</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+        fieldset{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-height: 60vh;
+            min-width: 75vw;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+        fieldset input{
+            margin: 40px;
+            padding: 10px;
+            outline: none;
+            width: 85%;
+            border: 2px solid blue;
+            border-radius: 12px;
+            text-align: center;
+        }
+        fieldset button{
+            margin: 10px;
+            padding: 10px 5px;
+            border: 0;
+            outline: none;
+            width: 50%;
+            background-color: #ffffff;
+            border: 2px solid black;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bolder;
+            transition: 200ms;
+            cursor: pointer;
+        }
+        fieldset button:hover, fieldset button:focus{
+            color: #ffffff;
+            background-color: black;
+            transition: 200ms;
+        }
+    </style>
+</head>
+<body>
+    <form action="/addFact" method="post">
+        <fieldset>
+            <legend>Submit A Fact</legend>
+
+            <input type="text" name="fct_typ" id="fct_typ" placeholder="Fact type">
+            <input type="text" name="fct_con" id="fct_con" placeholder="Fact content">
+            
+            <button type="reset">Reset</button>
+            <button type="submit">Submit</button>
+        </fieldset>
+    </form>
+    <script>
+        document.getElementById('fct_typ').addEventListener('keypress', (e) => {
+            if (e.keyCode == 13){
+                e.preventDefault();
+                document.getElementById('fct_con').focus();
+            }
+        });
+    </script>
+</body>
+</html>

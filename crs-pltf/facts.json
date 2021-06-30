@@ -1,7 +1,15 @@
 {
     "total": 2,
     "facts": [
-        {"id": 1, "type": "technology", "content": "It took less code to send a man to space than to run a modern day smartphone!"},
-        {"id": 2, "type": "technology", "content": "The QWERTY keyboard was explicitly designed to slow typing."}
+        {
+            "id": 1,
+            "type": "technology",
+            "content": "It took less code to send a man to space than to run a modern day smartphone!"
+        },
+        {
+            "id": 2,
+            "type": "technology",
+            "content": "The QWERTY keyboard was explicitly designed to slow typing."
+        }
     ]
 }
